@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 
 void error(char *message) {
-    fprintf(stderr, "%s", message);
+    fprintf(stderr, "Error: %s\n", message);
     glfwTerminate();
 }
 
@@ -24,14 +24,14 @@ int main() {
     // Create window object with GLFW and make it the current OpenGL context
     GLFWwindow *window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
     if (!window) {
-        error("Failed to create GLFW window.\n");
+        error("Failed to create GLFW window.");
         return 1;
     }
     glfwMakeContextCurrent(window);
 
     // Initialize GLAD with the 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        error("Failed to initialize GLAD.\n");
+        error("Failed to initialize GLAD.");
         return 1;
     }
 
