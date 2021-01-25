@@ -1,21 +1,26 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "opengl_util.h"
-#include "shader_source.h"
+
+#define WIDTH 1280
+#define HEIGHT 960
 
 float triangle1_vertices[] = {
     -0.5f,  0.5f, 0.0f,
     -0.8f, -0.5f, 0.0f,
-    -0.2f, -0.5f, 0.0f,
+    -0.2f, -0.5f, 0.0f
 };
 
 float triangle2_vertices[] = {
-     0.5f,  0.5f, 0.0f,
-     0.8f, -0.5f, 0.0f,
-     0.2f, -0.5f, 0.0f,
+    // positions         // colors
+    0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f, // top
+    0.8f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f, // bottom right
+    0.2f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f  // bottom left
 };
 
 unsigned int indices[] = {
@@ -28,7 +33,7 @@ void error(char *message) {
     glfwTerminate();
 }
 
-void processInput(GLFWwindow *window) {
+void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
@@ -50,7 +55,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window object with GLFW and make it the current OpenGL context
-    window = glfwCreateWindow(800, 600, "Hello Triangle", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Hello Triangle", NULL, NULL);
     if (!window) {
         error("Failed to create GLFW window.");
         return 1;
@@ -64,21 +69,16 @@ int main() {
     }
 
     // Set the initial viewport but then also register a callback function for resizing the window
-    glViewport(0, 0, 800, 600); // Tell OpenGL the size of the rendering window.
+    glViewport(0, 0, WIDTH, HEIGHT); // Tell OpenGL the size of the rendering window.
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // ----- Shaders -----
-    vertex_shader = init_vertex_shader(vertex_shader_source);
-    fragment_shader_1 = init_fragment_shader(fragment_shader_source_beige);
-    fragment_shader_2 = init_fragment_shader(fragment_shader_source_purple);
 
-    init_shader_program(vertex_shader, &shader_program_1, &fragment_shader_1);
-    init_shader_program(vertex_shader, &shader_program_2, &fragment_shader_2);
+    struct shader shader1;
+    shader_init(&shader1, "shaders/vshader", "shaders/fshader1");
+    struct shader shader2;
+    shader_init(&shader2, "shaders/vshader", "shaders/fshader2");
 
-    // No longer needed after shaderProgram creation
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader_1);
-    glDeleteShader(fragment_shader_2);
     // ----- End Shaders -----
 
     // ----- Vertex data and attributes -----
@@ -114,31 +114,35 @@ int main() {
     glBufferData(GL_ARRAY_BUFFER, sizeof(triangle2_vertices), triangle2_vertices, GL_STATIC_DRAW);
 
     // Tell OpenGL how to interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // ----- End Vertex data and attributes -----
 
     // render loop, GLFW has a function to determine if it needs to close the window
     while (!glfwWindowShouldClose(window)) {
         // input
-        processInput(window);
+        process_input(window);
 
         // ------------- rendering commands -------------
         glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function)
         glClear(GL_COLOR_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
-        glUseProgram(shader_program_1); 
+        float time_value = glfwGetTime();
+        float green_value = (sin(time_value) / 2.0) + 0.5f;
+        shader_use(&shader1);
+        shader_set_4float(&shader1, "our_color", 0.0, green_value, 0.0, 1.0);
         glBindVertexArray(VAO1);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // glDrawElements instead of glDrawArrays to indicate that we want to draw using
         // indices provided by the element buffer
         //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glUseProgram(shader_program_2); 
+        shader_use(&shader2);
         glBindVertexArray(VAO2);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-
         // ------------- end rendering -------------
 
         // check and call events and swap the buffers
