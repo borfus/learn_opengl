@@ -5,22 +5,20 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include "opengl_util.h"
 
 #define WIDTH 1280
 #define HEIGHT 960
 
-float triangle1_vertices[] = {
-    -0.5f,  0.5f, 0.0f,
-    -0.8f, -0.5f, 0.0f,
-    -0.2f, -0.5f, 0.0f
-};
-
-float triangle2_vertices[] = {
-    // positions         // colors
-    0.5f,  0.5f, 0.0f,   0.0f, 0.0f, 1.0f, // top
-    0.8f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f, // bottom right
-    0.2f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f  // bottom left
+float vertices[] = {
+    // positions     // colors      // texture coords
+     0.5,  0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
+     0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
+    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
+    -0.5,  0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0  // top left
 };
 
 unsigned int indices[] = {
@@ -42,10 +40,8 @@ void process_input(GLFWwindow *window) {
 int main() {
     GLFWwindow *window;
     unsigned int vertex_shader;
-    unsigned int fragment_shader_1;
-    unsigned int fragment_shader_2;
-    unsigned int shader_program_1;
-    unsigned int shader_program_2;
+    unsigned int fragment_shader;
+    unsigned int shader_program;
 
     glfwInit();
 
@@ -74,75 +70,126 @@ int main() {
 
     // ----- Shaders -----
 
-    struct shader shader1;
-    shader_init(&shader1, "shaders/vshader", "shaders/fshader1");
-    struct shader shader2;
-    shader_init(&shader2, "shaders/vshader", "shaders/fshader2");
+    struct shader shader;
+    shader_init(&shader, "resources/shaders/vshader", "resources/shaders/fshader");
 
     // ----- End Shaders -----
 
     // ----- Vertex data and attributes -----
     // Buffer data
-    unsigned int VBO1;
-    glGenBuffers(1, &VBO1);
-    unsigned int VBO2;
-    glGenBuffers(1, &VBO2);
+    unsigned int VBO;
+    glGenBuffers(1, &VBO);
     // Vertex Array Object for repeated use and simplifying render calls
-    unsigned int VAO1;
-    glGenVertexArrays(1, &VAO1);
-    glBindVertexArray(VAO1);
+    unsigned int VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
     // Element buffer object
     // Helpful for storing elements of triangle vertices from an array
     unsigned int EBO;
     glGenBuffers(1, &EBO);
 
     // Bind vertex data to VBO so it can be used for rendering
-    glBindBuffer(GL_ARRAY_BUFFER, VBO1);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle1_vertices), triangle1_vertices, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // Tell OpenGL how to interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*) 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    // Tell OpenGL how to interpret the vertex position data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-
-    // Vertex Array Object for repeated use and simplifying render calls
-    unsigned int VAO2;
-    glGenVertexArrays(1, &VAO2);
-    glBindVertexArray(VAO2);
-
-    // Bind vertex data to VBO so it can be used for rendering
-    glBindBuffer(GL_ARRAY_BUFFER, VBO2);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(triangle2_vertices), triangle2_vertices, GL_STATIC_DRAW);
-
-    // Tell OpenGL how to interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) 0);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*) (3 * sizeof(float)));
+    // Vertex color attributes
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // Vertex texture attributes
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // ----- End Vertex data and attributes -----
 
+    // ----- Textures -----
+
+    // Load the texture width, height, number of color channels, and byte data with stb_image
+    int tex_width, tex_height, tex_color_channels;
+    unsigned char *tex_data = stbi_load("resources/textures/container.jpg", &tex_width, &tex_height, &tex_color_channels, 0);
+
+    // Create the texture object and store the ID
+    unsigned int texture1;
+    glGenTextures(1, &texture1);
+
+    // Bind the texture object so that future commands related to textures opperate on our newly created texture object
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    // Set texture wrapping and filtering properties
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    if (tex_data) {
+        // Generate the texture and mipmap for the bound GL_TEXTURE_2D target
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, tex_data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        error("Failed to load texture.");
+        return 1;
+    }
+
+    stbi_image_free(tex_data);
+
+    stbi_set_flip_vertically_on_load(true);
+    tex_data = stbi_load("resources/textures/awesomeface.png", &tex_width, &tex_height, &tex_color_channels, 0);
+
+    unsigned int texture2;
+    glGenTextures(1, &texture2);
+
+    // Bind the texture object so that future commands related to textures opperate on our newly created texture object
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    // Set texture wrapping and filtering properties
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    if (tex_data) {
+        // Generate the texture and mipmap for the bound GL_TEXTURE_2D target
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, tex_data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    } else {
+        error("Failed to load texture.");
+        return 1;
+    }
+
+    // Free the texture data loaded in with stb_image since we don't need it anymore
+    stbi_image_free(tex_data);
+
+    // ----- End Textures -----
+
     // render loop, GLFW has a function to determine if it needs to close the window
+    shader_use(&shader);
+    shader_set_int(&shader, "texture1", 0);
+    shader_set_int(&shader, "texture2", 1);
     while (!glfwWindowShouldClose(window)) {
         // input
         process_input(window);
 
         // ------------- rendering commands -------------
+
         glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function)
         glClear(GL_COLOR_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
         float time_value = glfwGetTime();
         float green_value = (sin(time_value) / 2.0) + 0.5f;
-        shader_use(&shader1);
-        shader_set_4float(&shader1, "our_color", 0.0, green_value, 0.0, 1.0);
-        glBindVertexArray(VAO1);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        // glDrawElements instead of glDrawArrays to indicate that we want to draw using
-        // indices provided by the element buffer
-        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        shader_use(&shader2);
-        glBindVertexArray(VAO2);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
+
+        glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
         // ------------- end rendering -------------
 
         // check and call events and swap the buffers
