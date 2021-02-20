@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <glad/glad.h>
+#include <cglm/cglm.h>
+#include <cglm/struct.h>
 
 #include "opengl_util.h"
 #include "file_util.h"
@@ -119,6 +121,10 @@ void shader_set_3float(struct shader *shader, const char *name, float v1, float 
 
 void shader_set_4float(struct shader *shader, const char *name, float v1, float v2, float v3, float v4) {
     glUniform4f(glGetUniformLocation(shader->id, name), v1, v2, v3, v4);
+}
+
+void shader_set_mat4(struct shader *shader, const char *name, mat4s mat) {
+    glUniformMatrix4fv(glGetUniformLocation(shader->id, name), 1, GL_FALSE, (const GLfloat *)&mat.raw);
 }
 
 // Example of a callback function- This one is used for handling window resizing

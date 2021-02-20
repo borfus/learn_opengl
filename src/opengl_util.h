@@ -1,6 +1,8 @@
 #pragma once
 #include <stdbool.h>
 #include <GLFW/glfw3.h>
+#include <cglm/cglm.h>
+#include <cglm/struct.h>
 
 struct shader {
     unsigned int id;
@@ -24,8 +26,7 @@ void shader_set_float(struct shader *shader, const char *name, float v);
 void shader_set_2float(struct shader *shader, const char *name, float v1, float v2);
 void shader_set_3float(struct shader *shader, const char *name, float v1, float v2, float v3);
 void shader_set_4float(struct shader *shader, const char *name, float v1, float v2, float v3, float v4);
+void shader_set_mat4(struct shader *shader, const char *name, mat4s mat);
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-
-
 

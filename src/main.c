@@ -4,6 +4,8 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cglm/cglm.h>
+#include <cglm/struct.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -31,9 +33,18 @@ void error(char *message) {
     glfwTerminate();
 }
 
+float percent = 0.2;
 void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
+        percent += 0.001;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
+        percent -= 0.001;
     }
 }
 
@@ -71,7 +82,7 @@ int main() {
     // ----- Shaders -----
 
     struct shader shader;
-    shader_init(&shader, "resources/shaders/vshader", "resources/shaders/fshader");
+    shader_init(&shader, "resources/shaders/basic.vs", "resources/shaders/basic.fs");
 
     // ----- End Shaders -----
 
@@ -166,10 +177,15 @@ int main() {
 
     // ----- End Textures -----
 
+    mat4s transform_rot = glms_mat4_identity();
+    // The vec3 we pass in must be a unit vector. If it's not around one axis, normalize it first
+    transform_rot = glms_translate(transform_rot, (vec3s){0.5, -0.5, 0.0});
+
     // render loop, GLFW has a function to determine if it needs to close the window
     shader_use(&shader);
     shader_set_int(&shader, "texture1", 0);
     shader_set_int(&shader, "texture2", 1);
+
     while (!glfwWindowShouldClose(window)) {
         // input
         process_input(window);
@@ -180,7 +196,11 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
         float time_value = glfwGetTime();
+        transform_rot = glms_rotate(transform_rot, time_value, (vec3s){0.0, 0.0, 1.0});
+        shader_set_mat4(&shader, "transform", transform_rot);
+
         float green_value = (sin(time_value) / 2.0) + 0.5f;
+        shader_set_float(&shader, "percent", percent);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -188,6 +208,13 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        mat4s transform_scale = glms_mat4_identity();
+        float scale_amount = sin(glfwGetTime());
+        transform_scale = glms_translate(transform_scale, (vec3s){-0.5, 0.5, 0.0});
+        transform_scale = glms_scale(transform_scale, (vec3s){scale_amount, scale_amount, 0.0});
+        shader_set_mat4(&shader, "transform", transform_scale);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // ------------- end rendering -------------
