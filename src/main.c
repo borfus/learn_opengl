@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
+#include <unistd.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,11 +17,60 @@
 #define HEIGHT 960
 
 float vertices[] = {
-    // positions     // colors      // texture coords
-     0.5,  0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, // top right
-     0.5, -0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, // bottom right
-    -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bottom left
-    -0.5,  0.5, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0  // top left
+    -0.5, -0.5, -0.5, 0.0, 0.0,
+    0.5, -0.5, -0.5, 1.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    -0.5, 0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 0.0,
+
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 1.0,
+    0.5, 0.5, 0.5, 1.0, 1.0,
+    -0.5, 0.5, 0.5, 0.0, 1.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+
+    -0.5, 0.5, 0.5, 1.0, 0.0,
+    -0.5, 0.5, -0.5, 1.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    -0.5, 0.5, 0.5, 1.0, 0.0,
+
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, 0.5, 0.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, -0.5, 1.0, 1.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+
+    -0.5, 0.5, -0.5, 0.0, 1.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    -0.5, 0.5, 0.5, 0.0, 0.0,
+    -0.5, 0.5, -0.5, 0.0, 1.0
+};
+
+vec3s cube_positions[] = {
+    (vec3s){0.0, 0.0, 0.0},
+    (vec3s){2.0, 5.0, -15.0},
+    (vec3s){-1.5, -2.2, -2.5},
+    (vec3s){-3.8, -2.0, -12.3},
+    (vec3s){2.4, -0.4, -3.5},
+    (vec3s){-1.7, 3.0, -7.5},
+    (vec3s){1.3, -2.0, -2.5},
+    (vec3s){1.5, 2.0, -2.5},
+    (vec3s){1.5, 0.2, -1.5},
+    (vec3s){-1.3, 1.0, -1.5}
 };
 
 unsigned int indices[] = {
@@ -103,18 +153,15 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    /* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); */
+    /* glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); */
 
     // Tell OpenGL how to interpret the vertex position data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
-    // Vertex color attributes
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
     // Vertex texture attributes
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // ----- End Vertex data and attributes -----
 
@@ -148,7 +195,6 @@ int main() {
 
     stbi_image_free(tex_data);
 
-    stbi_set_flip_vertically_on_load(true);
     tex_data = stbi_load("resources/textures/awesomeface.png", &tex_width, &tex_height, &tex_color_channels, 0);
 
     unsigned int texture2;
@@ -177,15 +223,17 @@ int main() {
 
     // ----- End Textures -----
 
-    mat4s transform_rot = glms_mat4_identity();
-    // The vec3 we pass in must be a unit vector. If it's not around one axis, normalize it first
-    transform_rot = glms_translate(transform_rot, (vec3s){0.5, -0.5, 0.0});
+    mat4s view = glms_mat4_identity();
+    view = glms_translate(view, (vec3s){0.0, 0.0, -3.0});
+
+    mat4s projection = glms_perspective(glm_rad(45.0), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
 
     // render loop, GLFW has a function to determine if it needs to close the window
     shader_use(&shader);
     shader_set_int(&shader, "texture1", 0);
     shader_set_int(&shader, "texture2", 1);
 
+    glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window)) {
         // input
         process_input(window);
@@ -193,14 +241,14 @@ int main() {
         // ------------- rendering commands -------------
 
         glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function)
-        glClear(GL_COLOR_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
         float time_value = glfwGetTime();
-        transform_rot = glms_rotate(transform_rot, time_value, (vec3s){0.0, 0.0, 1.0});
-        shader_set_mat4(&shader, "transform", transform_rot);
-
         float green_value = (sin(time_value) / 2.0) + 0.5f;
         shader_set_float(&shader, "percent", percent);
+
+        shader_set_mat4(&shader, "view", view);
+        shader_set_mat4(&shader, "projection", projection);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -208,15 +256,16 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, texture2);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        for (int i = 0; i < 10; i++) {
+            mat4s model = glms_mat4_identity();
+            model = glms_translate(model, cube_positions[i]);
+            float angle = 20.0 * i;
+            model = glms_rotate(model, glm_rad(angle), (vec3s){1.0, 0.3, 0.5});
 
-        mat4s transform_scale = glms_mat4_identity();
-        float scale_amount = sin(glfwGetTime());
-        transform_scale = glms_translate(transform_scale, (vec3s){-0.5, 0.5, 0.0});
-        transform_scale = glms_scale(transform_scale, (vec3s){scale_amount, scale_amount, 0.0});
-        shader_set_mat4(&shader, "transform", transform_scale);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
+            shader_set_mat4(&shader, "model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        
         // ------------- end rendering -------------
 
         // check and call events and swap the buffers
