@@ -84,6 +84,7 @@ void error(char *message) {
 }
 
 float percent = 0.2;
+float xpos = 0.0;
 void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
@@ -95,6 +96,14 @@ void process_input(GLFWwindow *window) {
 
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
         percent -= 0.001;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
+        xpos += 0.01;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
+        xpos -= 0.01;
     }
 }
 
@@ -247,6 +256,8 @@ int main() {
         float green_value = (sin(time_value) / 2.0) + 0.5f;
         shader_set_float(&shader, "percent", percent);
 
+        view = glms_translate(view, (vec3s){xpos, 0.0, 0.0});
+        xpos = 0;
         shader_set_mat4(&shader, "view", view);
         shader_set_mat4(&shader, "projection", projection);
 
@@ -261,6 +272,10 @@ int main() {
             model = glms_translate(model, cube_positions[i]);
             float angle = 20.0 * i;
             model = glms_rotate(model, glm_rad(angle), (vec3s){1.0, 0.3, 0.5});
+
+            if (i % 3 == 0) {
+                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0), (vec3s){0.5, 1.0, 0.0});
+            }
 
             shader_set_mat4(&shader, "model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
