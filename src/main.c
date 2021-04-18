@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <math.h>
-#include <unistd.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -61,16 +60,16 @@ float vertices[] = {
 };
 
 vec3s cube_positions[] = {
-    (vec3s){0.0, 0.0, 0.0},
-    (vec3s){2.0, 5.0, -15.0},
-    (vec3s){-1.5, -2.2, -2.5},
-    (vec3s){-3.8, -2.0, -12.3},
-    (vec3s){2.4, -0.4, -3.5},
-    (vec3s){-1.7, 3.0, -7.5},
-    (vec3s){1.3, -2.0, -2.5},
-    (vec3s){1.5, 2.0, -2.5},
-    (vec3s){1.5, 0.2, -1.5},
-    (vec3s){-1.3, 1.0, -1.5}
+    {0.0, 0.0, 0.0},
+    {2.0, 5.0, -15.0},
+    {-1.5, -2.2, -2.5},
+    {-3.8, -2.0, -12.3},
+    {2.4, -0.4, -3.5},
+    {-1.7, 3.0, -7.5},
+    {1.3, -2.0, -2.5},
+    {1.5, 2.0, -2.5},
+    {1.5, 0.2, -1.5},
+    {-1.3, 1.0, -1.5}
 };
 
 unsigned int indices[] = {
@@ -78,9 +77,10 @@ unsigned int indices[] = {
     1, 2, 3
 };
 
-vec3s camera_pos = (vec3s){0.0, 0.0, 3.0};
-vec3s camera_front = (vec3s){0.0, 0.0, -1.0};
-vec3s camera_up = (vec3s){0.0, 1.0, 0.0};
+// Camera vectors
+vec3s camera_pos = {0.0, 0.0, 3.0};
+vec3s camera_front = {0.0, 0.0, -1.0};
+vec3s camera_up = {0.0, 1.0, 0.0};
 
 void error(char *message) {
     fprintf(stderr, "Error: %s\n", message);
@@ -248,14 +248,6 @@ int main() {
     // ----- End Textures -----
 
     mat4s view = glms_mat4_identity();
-
-    // Camera vectors
-    //vec3s camera_target = (vec3s){0.0, 0.0, 0.0};
-    //vec3s camera_direction = glms_vec3_normalize(glms_vec3_sub(camera_pos, camera_target));
-    //vec3s up = (vec3s){0.0, 1.0, 0.0};
-    //vec3s camera_right = glms_vec3_normalize(glms_vec3_cross(up, camera_right));
-    //vec3s camera_up = glms_vec3_cross(camera_direction, camera_right);
-
     mat4s projection = glms_perspective(glm_rad(45.0), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
 
     // render loop, GLFW has a function to determine if it needs to close the window
