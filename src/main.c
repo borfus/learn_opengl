@@ -81,6 +81,8 @@ unsigned int indices[] = {
 vec3s camera_pos = {{0.0, 0.0, 3.0}};
 vec3s camera_front = {{0.0, 0.0, -1.0}};
 vec3s camera_up = {{0.0, 1.0, 0.0}};
+float pitch = 0.0;
+float yaw = -90.0; // Point towards the -z axis by default
 
 void error(char *message) {
     fprintf(stderr, "Error: %s\n", message);
@@ -130,6 +132,55 @@ void process_input(GLFWwindow *window) {
     }
 }
 
+bool first_mouse = true;
+float lastx = WIDTH/2, lasty = HEIGHT/2; // in the middle of the screen
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    if (first_mouse) {
+        lastx = xpos;
+        lasty = ypos;
+        first_mouse = false;
+    }
+
+    float xoffset = xpos - lastx;
+    float yoffset = lasty - ypos; // reversed because y ranges from bottom to top
+    lastx = xpos;
+    lasty = ypos;
+
+    const float sensitivity = 0.1;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw += xoffset;
+    pitch += yoffset;
+
+    // ypos constraints
+    if (pitch > 89.0) {
+        pitch = 89.0;
+    }
+    if (pitch < -89.0) {
+        pitch = -89.0;
+    }
+
+    // Update camera direction
+    vec3s direction;
+    direction.x = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
+    direction.y = sin(glm_rad(pitch));
+    direction.z = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
+    camera_front = glms_normalize(direction);
+}
+
+float fov = 45.0;
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
+    // yoffset tells us the amount we scrolled vertically
+    fov -= (float)yoffset;
+    if (fov < 1.0) {
+        fov = 1.0;
+    }
+    if (fov > 45.0) {
+        fov = 45.0;
+    }
+}
+
 int main() {
     GLFWwindow *window;
 
@@ -157,6 +208,11 @@ int main() {
     // Set the initial viewport but then also register a callback function for resizing the window
     glViewport(0, 0, WIDTH, HEIGHT); // Tell OpenGL the size of the rendering window.
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    // Capture mouse and hide it
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // ----- Shaders -----
 
@@ -253,7 +309,7 @@ int main() {
     // ----- End Textures -----
 
     mat4s view = glms_mat4_identity();
-    mat4s projection = glms_perspective(glm_rad(45.0), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
+    mat4s projection = glms_perspective(glm_rad(fov), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
 
     // render loop, GLFW has a function to determine if it needs to close the window
     shader_use(&shader);
@@ -272,7 +328,9 @@ int main() {
 
         shader_set_float(&shader, "percent", percent);
 
+        // Update camera view
         view = glms_lookat(camera_pos, glms_vec3_add(camera_pos, camera_front), camera_up);
+        projection = glms_perspective(glm_rad(fov), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
 
         shader_set_mat4(&shader, "view", view);
         shader_set_mat4(&shader, "projection", projection);
