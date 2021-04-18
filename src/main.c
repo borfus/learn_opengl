@@ -60,16 +60,16 @@ float vertices[] = {
 };
 
 vec3s cube_positions[] = {
-    {0.0, 0.0, 0.0},
-    {2.0, 5.0, -15.0},
-    {-1.5, -2.2, -2.5},
-    {-3.8, -2.0, -12.3},
-    {2.4, -0.4, -3.5},
-    {-1.7, 3.0, -7.5},
-    {1.3, -2.0, -2.5},
-    {1.5, 2.0, -2.5},
-    {1.5, 0.2, -1.5},
-    {-1.3, 1.0, -1.5}
+    {{0.0, 0.0, 0.0}},
+    {{2.0, 5.0, -15.0}},
+    {{-1.5, -2.2, -2.5}},
+    {{-3.8, -2.0, -12.3}},
+    {{2.4, -0.4, -3.5}},
+    {{-1.7, 3.0, -7.5}},
+    {{1.3, -2.0, -2.5}},
+    {{1.5, 2.0, -2.5}},
+    {{1.5, 0.2, -1.5}},
+    {{-1.3, 1.0, -1.5}}
 };
 
 unsigned int indices[] = {
@@ -78,9 +78,9 @@ unsigned int indices[] = {
 };
 
 // Camera vectors
-vec3s camera_pos = {0.0, 0.0, 3.0};
-vec3s camera_front = {0.0, 0.0, -1.0};
-vec3s camera_up = {0.0, 1.0, 0.0};
+vec3s camera_pos = {{0.0, 0.0, 3.0}};
+vec3s camera_front = {{0.0, 0.0, -1.0}};
+vec3s camera_up = {{0.0, 1.0, 0.0}};
 
 void error(char *message) {
     fprintf(stderr, "Error: %s\n", message);
@@ -124,9 +124,6 @@ void process_input(GLFWwindow *window) {
 
 int main() {
     GLFWwindow *window;
-    unsigned int vertex_shader;
-    unsigned int fragment_shader;
-    unsigned int shader_program;
 
     glfwInit();
 
@@ -265,8 +262,6 @@ int main() {
         glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
-        float time_value = glfwGetTime();
-        float green_value = (sin(time_value) / 2.0) + 0.5f;
         shader_set_float(&shader, "percent", percent);
 
         view = glms_lookat(camera_pos, glms_vec3_add(camera_pos, camera_front), camera_up);
@@ -284,10 +279,10 @@ int main() {
             mat4s model = glms_mat4_identity();
             model = glms_translate(model, cube_positions[i]);
             float angle = 20.0 * i;
-            model = glms_rotate(model, glm_rad(angle), (vec3s){1.0, 0.3, 0.5});
+            model = glms_rotate(model, glm_rad(angle), (vec3s){{1.0, 0.3, 0.5}});
 
             if (i % 3 == 0) {
-                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0), (vec3s){0.5, 1.0, 0.0});
+                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0), (vec3s){{0.5, 1.0, 0.0}});
             }
 
             shader_set_mat4(&shader, "model", model);
