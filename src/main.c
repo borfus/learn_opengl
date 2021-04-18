@@ -120,6 +120,14 @@ void process_input(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
         camera_pos = glms_vec3_add(camera_pos, glms_vec3_scale(glms_vec3_normalize(glms_vec3_cross(camera_front, camera_up)), camera_speed));
     }
+
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+        camera_pos = glms_vec3_muladds(camera_up, camera_speed, camera_pos);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(camera_up, camera_speed));
+    }
 }
 
 int main() {
