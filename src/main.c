@@ -78,14 +78,21 @@ unsigned int indices[] = {
     1, 2, 3
 };
 
+vec3s camera_pos = (vec3s){0.0, 0.0, 3.0};
+vec3s camera_front = (vec3s){0.0, 0.0, -1.0};
+vec3s camera_up = (vec3s){0.0, 1.0, 0.0};
+
 void error(char *message) {
     fprintf(stderr, "Error: %s\n", message);
     glfwTerminate();
 }
 
+float delta_time = 0.0;
+float last_frame = 0.0;
 float percent = 0.2;
-float xpos = 0.0;
 void process_input(GLFWwindow *window) {
+    float camera_speed = 2.5 * delta_time;
+     
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
@@ -98,12 +105,20 @@ void process_input(GLFWwindow *window) {
         percent -= 0.001;
     }
 
-    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) {
-        xpos += 0.01;
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        camera_pos = glms_vec3_muladds(camera_front, camera_speed, camera_pos);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) {
-        xpos -= 0.01;
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(camera_front, camera_speed));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(glms_vec3_normalize(glms_vec3_cross(camera_front, camera_up)), camera_speed));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        camera_pos = glms_vec3_add(camera_pos, glms_vec3_scale(glms_vec3_normalize(glms_vec3_cross(camera_front, camera_up)), camera_speed));
     }
 }
 
@@ -233,7 +248,13 @@ int main() {
     // ----- End Textures -----
 
     mat4s view = glms_mat4_identity();
-    view = glms_translate(view, (vec3s){0.0, 0.0, -3.0});
+
+    // Camera vectors
+    //vec3s camera_target = (vec3s){0.0, 0.0, 0.0};
+    //vec3s camera_direction = glms_vec3_normalize(glms_vec3_sub(camera_pos, camera_target));
+    //vec3s up = (vec3s){0.0, 1.0, 0.0};
+    //vec3s camera_right = glms_vec3_normalize(glms_vec3_cross(up, camera_right));
+    //vec3s camera_up = glms_vec3_cross(camera_direction, camera_right);
 
     mat4s projection = glms_perspective(glm_rad(45.0), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
 
@@ -256,8 +277,8 @@ int main() {
         float green_value = (sin(time_value) / 2.0) + 0.5f;
         shader_set_float(&shader, "percent", percent);
 
-        view = glms_translate(view, (vec3s){xpos, 0.0, 0.0});
-        xpos = 0;
+        view = glms_lookat(camera_pos, glms_vec3_add(camera_pos, camera_front), camera_up);
+
         shader_set_mat4(&shader, "view", view);
         shader_set_mat4(&shader, "projection", projection);
 
@@ -286,6 +307,11 @@ int main() {
         // check and call events and swap the buffers
         glfwPollEvents();
         glfwSwapBuffers(window);
+
+        // Calc delta_time
+        float current_frame = glfwGetTime();
+        delta_time = current_frame - last_frame;
+        last_frame = current_frame;
     }
 
     // GLFW has this function to clean and delete all of the resources used
