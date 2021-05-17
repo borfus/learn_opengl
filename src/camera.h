@@ -4,6 +4,12 @@
 #include <glad/glad.h>
 #include <cglm/types-struct.h>
 
+#define CAMERA_DEFAULT_YAW -90.0f
+#define CAMERA_DEFAULT_PITCH 0.0f
+#define CAMERA_DEFAULT_SPEED 2.5f
+#define CAMERA_DEFAULT_SENSITIVITY 0.1f
+#define CAMERA_DEFAULT_FOV 45.0f 
+
 enum camera_movement {
     FORWARD,
     BACKWARD,
@@ -12,12 +18,6 @@ enum camera_movement {
     UP,
     DOWN
 };
-
-const float CAMERA_DEFAULT_YAW;
-const float CAMERA_DEFAULT_PITCH;
-const float CAMERA_DEFAULT_SPEED;
-const float CAMERA_DEFAULT_SENSITIVITY;
-const float CAMERA_DEFAULT_FOV;
 
 struct camera {
     vec3s position;

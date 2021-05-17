@@ -2,12 +2,6 @@
 #include <cglm/cglm.h>
 #include <cglm/struct.h>
 
-const float CAMERA_DEFAULT_YAW = -90.0f; // Point towards the -z axis by default
-const float CAMERA_DEFAULT_PITCH = 0.0f;
-const float CAMERA_DEFAULT_SPEED = 2.5f;
-const float CAMERA_DEFAULT_SENSITIVITY = 0.1f;
-const float CAMERA_DEFAULT_FOV = 45.0f;
-
 void update_camera_vectors(struct camera *camera) {
     vec3s front;
     front.x = (float) cos(glm_rad(camera->yaw)) * (float) cos(glm_rad(camera->pitch));
