@@ -1,4 +1,6 @@
-#pragma once
+#ifndef INCLUDE_OPENGL_UTIL_H
+#define INCLUDE_OPENGL_UTIL_H
+
 #include <stdbool.h>
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
@@ -30,3 +32,4 @@ void shader_set_mat4(struct shader *shader, const char *name, mat4s mat);
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
+#endif

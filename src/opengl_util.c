@@ -132,4 +132,3 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
     // Need to redo the OpenGL viewport if the window size changes
     glViewport(0, 0, width, height);
 }
-

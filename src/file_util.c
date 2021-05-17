@@ -5,15 +5,13 @@
 
 char *read_file_string(FILE *file) {
     fseek(file, 0, SEEK_END);
-    long length = ftell(file);
+    long long length = ftell(file);
     fseek(file, 0, SEEK_SET);
     char *string = malloc(length + 1L);
-    memset(string, '\0', length + 1L);
     if (string) {
-        fread(string, 1, length, file);
+        memset(string, '\0', length + 1L);
+        fread(string, sizeof(char), length, file);
     }
     fclose(file);
     return string;
 }
-
-

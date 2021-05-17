@@ -11,65 +11,66 @@
 #include "stb_image.h"
 
 #include "opengl_util.h"
+#include "camera.h"
 
-#define WIDTH 1280
-#define HEIGHT 960
+#define WIDTH 1920
+#define HEIGHT 1080
 
 float vertices[] = {
-    -0.5, -0.5, -0.5, 0.0, 0.0,
-    0.5, -0.5, -0.5, 1.0, 0.0,
-    0.5, 0.5, -0.5, 1.0, 1.0,
-    0.5, 0.5, -0.5, 1.0, 1.0,
-    -0.5, 0.5, -0.5, 0.0, 1.0,
-    -0.5, -0.5, -0.5, 0.0, 0.0,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f,
 
-    -0.5, -0.5, 0.5, 0.0, 0.0,
-    0.5, -0.5, 0.5, 1.0, 0.0,
-    0.5, 0.5, 0.5, 1.0, 1.0,
-    0.5, 0.5, 0.5, 1.0, 1.0,
-    -0.5, 0.5, 0.5, 0.0, 1.0,
-    -0.5, -0.5, 0.5, 0.0, 0.0,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,
 
-    -0.5, 0.5, 0.5, 1.0, 0.0,
-    -0.5, 0.5, -0.5, 1.0, 1.0,
-    -0.5, -0.5, -0.5, 0.0, 1.0,
-    -0.5, -0.5, -0.5, 0.0, 1.0,
-    -0.5, -0.5, 0.5, 0.0, 0.0,
-    -0.5, 0.5, 0.5, 1.0, 0.0,
+    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
 
-    0.5, 0.5, 0.5, 1.0, 0.0,
-    0.5, 0.5, -0.5, 1.0, 1.0,
-    0.5, -0.5, -0.5, 0.0, 1.0,
-    0.5, -0.5, -0.5, 0.0, 1.0,
-    0.5, -0.5, 0.5, 0.0, 0.0,
-    0.5, 0.5, 0.5, 1.0, 0.0,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
 
-    -0.5, -0.5, -0.5, 0.0, 1.0,
-    0.5, -0.5, -0.5, 1.0, 1.0,
-    0.5, -0.5, 0.5, 1.0, 0.0,
-    0.5, -0.5, 0.5, 1.0, 0.0,
-    -0.5, -0.5, 0.5, 0.0, 0.0,
-    -0.5, -0.5, -0.5, 0.0, 1.0,
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f,  1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f,  0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f,  1.0f,
 
-    -0.5, 0.5, -0.5, 0.0, 1.0,
-    0.5, 0.5, -0.5, 1.0, 1.0,
-    0.5, 0.5, 0.5, 1.0, 0.0,
-    0.5, 0.5, 0.5, 1.0, 0.0,
-    -0.5, 0.5, 0.5, 0.0, 0.0,
-    -0.5, 0.5, -0.5, 0.0, 1.0
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f,  1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f
 };
 
 vec3s cube_positions[] = {
-    {{0.0, 0.0, 0.0}},
-    {{2.0, 5.0, -15.0}},
-    {{-1.5, -2.2, -2.5}},
-    {{-3.8, -2.0, -12.3}},
-    {{2.4, -0.4, -3.5}},
-    {{-1.7, 3.0, -7.5}},
-    {{1.3, -2.0, -2.5}},
-    {{1.5, 2.0, -2.5}},
-    {{1.5, 0.2, -1.5}},
-    {{-1.3, 1.0, -1.5}}
+    {{ 0.0f,  0.0f,  0.0f}},
+    {{ 2.0f,  5.0f, -15.0f}},
+    {{-1.5f, -2.2f, -2.5f}},
+    {{-3.8f, -2.0f, -12.3f}},
+    {{ 2.4f, -0.4f, -3.5f}},
+    {{-1.7f,  3.0f, -7.5f}},
+    {{ 1.3f, -2.0f, -2.5f}},
+    {{ 1.5f,  2.0f, -2.5f}},
+    {{ 1.5f,  0.2f, -1.5f}},
+    {{-1.3f,  1.0f, -1.5f}}
 };
 
 unsigned int indices[] = {
@@ -78,57 +79,55 @@ unsigned int indices[] = {
 };
 
 // Camera vectors
-vec3s camera_pos = {{0.0, 0.0, 3.0}};
-vec3s camera_front = {{0.0, 0.0, -1.0}};
-vec3s camera_up = {{0.0, 1.0, 0.0}};
-float pitch = 0.0;
-float yaw = -90.0; // Point towards the -z axis by default
+vec3s camera_pos = {{0.0f, 0.0f, 3.0f}};
+vec3s camera_up = {{0.0f, 1.0f, 0.0f}};
+struct camera camera;
 
 void error(char *message) {
     fprintf(stderr, "Error: %s\n", message);
     glfwTerminate();
 }
 
-float delta_time = 0.0;
-float last_frame = 0.0;
-float percent = 0.2;
+float delta_time = 0.0f;
+float last_frame = 0.0f;
+float percent = 0.2f;
 void process_input(GLFWwindow *window) {
-    float camera_speed = 2.5 * delta_time;
+    float camera_speed = 2.5f * delta_time;
      
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
     }
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) {
-        percent += 0.001;
+        percent += 0.001f;
     }
 
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) {
-        percent -= 0.001;
+        percent -= 0.001f;
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-        camera_pos = glms_vec3_muladds(camera_front, camera_speed, camera_pos);
+        camera_process_keyboard(&camera, FORWARD, delta_time);
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(camera_front, camera_speed));
+        camera_process_keyboard(&camera, BACKWARD, delta_time);
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(glms_vec3_normalize(glms_vec3_cross(camera_front, camera_up)), camera_speed));
+        camera_process_keyboard(&camera, LEFT, delta_time);
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-        camera_pos = glms_vec3_add(camera_pos, glms_vec3_scale(glms_vec3_normalize(glms_vec3_cross(camera_front, camera_up)), camera_speed));
+        camera_process_keyboard(&camera, RIGHT, delta_time);
     }
 
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-        camera_pos = glms_vec3_muladds(camera_up, camera_speed, camera_pos);
+        camera_process_keyboard(&camera, UP, delta_time);
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-        camera_pos = glms_vec3_sub(camera_pos, glms_vec3_scale(camera_up, camera_speed));
+        camera_process_keyboard(&camera, DOWN, delta_time);
     }
 }
 
@@ -136,49 +135,22 @@ bool first_mouse = true;
 float lastx = WIDTH/2, lasty = HEIGHT/2; // in the middle of the screen
 void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
     if (first_mouse) {
-        lastx = xpos;
-        lasty = ypos;
+        lastx = (float) xpos;
+        lasty = (float) ypos;
         first_mouse = false;
     }
 
-    float xoffset = xpos - lastx;
-    float yoffset = lasty - ypos; // reversed because y ranges from bottom to top
-    lastx = xpos;
-    lasty = ypos;
+    float xoffset = (float) xpos - lastx;
+    float yoffset = lasty - (float) ypos; // reversed because y ranges from bottom to top
+    lastx = (float) xpos;
+    lasty = (float) ypos;
 
-    const float sensitivity = 0.1;
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    // ypos constraints
-    if (pitch > 89.0) {
-        pitch = 89.0;
-    }
-    if (pitch < -89.0) {
-        pitch = -89.0;
-    }
-
-    // Update camera direction
-    vec3s direction;
-    direction.x = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
-    direction.y = sin(glm_rad(pitch));
-    direction.z = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
-    camera_front = glms_normalize(direction);
+    camera_process_mouse_movement(&camera, xoffset, yoffset);
 }
 
 float fov = 45.0;
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset) {
-    // yoffset tells us the amount we scrolled vertically
-    fov -= (float)yoffset;
-    if (fov < 1.0) {
-        fov = 1.0;
-    }
-    if (fov > 45.0) {
-        fov = 45.0;
-    }
+    camera_process_mouse_scroll(&camera, (float) yoffset);
 }
 
 int main() {
@@ -308,8 +280,9 @@ int main() {
 
     // ----- End Textures -----
 
-    mat4s view = glms_mat4_identity();
-    mat4s projection = glms_perspective(glm_rad(fov), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
+    // Camera
+    camera_init_vec3s(&camera, camera_pos, camera_up, CAMERA_DEFAULT_YAW, CAMERA_DEFAULT_PITCH);
+    // ----- End Camera -----
 
     // render loop, GLFW has a function to determine if it needs to close the window
     shader_use(&shader);
@@ -329,11 +302,11 @@ int main() {
         shader_set_float(&shader, "percent", percent);
 
         // Update camera view
-        view = glms_lookat(camera_pos, glms_vec3_add(camera_pos, camera_front), camera_up);
-        projection = glms_perspective(glm_rad(fov), (float)WIDTH / (float)HEIGHT, 0.1, 100.0);
+        mat4s projection = glms_perspective(glm_rad(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+        mat4s view = camera_get_view_mat4s(&camera);
 
-        shader_set_mat4(&shader, "view", view);
         shader_set_mat4(&shader, "projection", projection);
+        shader_set_mat4(&shader, "view", view);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
@@ -344,17 +317,17 @@ int main() {
         for (int i = 0; i < 10; i++) {
             mat4s model = glms_mat4_identity();
             model = glms_translate(model, cube_positions[i]);
-            float angle = 20.0 * i;
-            model = glms_rotate(model, glm_rad(angle), (vec3s){{1.0, 0.3, 0.5}});
+            float angle = 20.0f * i;
+            model = glms_rotate(model, glm_rad(angle), (vec3s){{1.0f, 0.3f, 0.5f}});
 
             if (i % 3 == 0) {
-                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0), (vec3s){{0.5, 1.0, 0.0}});
+                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0f), (vec3s){{0.5f, 1.0f, 0.0f}});
             }
 
             shader_set_mat4(&shader, "model", model);
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-        
+
         // ------------- end rendering -------------
 
         // check and call events and swap the buffers
@@ -362,7 +335,7 @@ int main() {
         glfwSwapBuffers(window);
 
         // Calc delta_time
-        float current_frame = glfwGetTime();
+        float current_frame = (float) glfwGetTime();
         delta_time = current_frame - last_frame;
         last_frame = current_frame;
     }
@@ -371,4 +344,3 @@ int main() {
     glfwTerminate();
     return 0;
 }
-
