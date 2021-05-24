@@ -72,6 +72,10 @@ vec3s cube_positions[] = {
     {{ 1.5f,  0.2f, -1.5f}},
     {{-1.3f,  1.0f, -1.5f}}
 };
+int cubes = sizeof(cube_positions) / sizeof(vec3s);
+
+vec3s cube_position = {{0.0f, 0.0f, 0.0f}};
+vec3s light_position = {{1.2f, 1.0f, 2.0f}};
 
 unsigned int indices[] = {
     0, 1, 3,
@@ -188,8 +192,10 @@ int main() {
 
     // ----- Shaders -----
 
-    struct shader shader;
-    shader_init(&shader, "resources/shaders/basic.vs", "resources/shaders/basic.fs");
+    struct shader lighting_shader;
+    shader_init(&lighting_shader, "resources/shaders/basic.vs", "resources/shaders/basic.fs");
+    struct shader light_source_shader;
+    shader_init(&light_source_shader, "resources/shaders/light_source.vs", "resources/shaders/light_source.fs");
 
     // ----- End Shaders -----
 
@@ -201,6 +207,7 @@ int main() {
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
+
     // Element buffer object
     // Helpful for storing elements of triangle vertices from an array
     unsigned int EBO;
@@ -210,15 +217,25 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    /* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); */
-    /* glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); */
-
     // Tell OpenGL how to interpret the vertex position data
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
     glEnableVertexAttribArray(0);
     // Vertex texture attributes
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Light VAO
+    unsigned int light_VAO;
+    glGenVertexArrays(1, &light_VAO);
+    glBindVertexArray(light_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+    /* glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); */
+    /* glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); */
+
+    // Tell OpenGL how to interpret the vertex position data
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*) 0);
+    glEnableVertexAttribArray(0);
 
     // ----- End Vertex data and attributes -----
 
@@ -285,9 +302,11 @@ int main() {
     // ----- End Camera -----
 
     // render loop, GLFW has a function to determine if it needs to close the window
-    shader_use(&shader);
-    shader_set_int(&shader, "texture1", 0);
-    shader_set_int(&shader, "texture2", 1);
+    shader_use(&lighting_shader);
+    shader_set_int(&lighting_shader, "texture1", 0);
+    shader_set_int(&lighting_shader, "texture2", 1);
+    shader_set_3float(&lighting_shader, "object_color", 1.0f, 0.5f, 0.31f);
+    shader_set_3float(&lighting_shader, "light_color", 1.0f, 1.0f, 1.0f);
 
     glEnable(GL_DEPTH_TEST);
     while (!glfwWindowShouldClose(window)) {
@@ -296,37 +315,43 @@ int main() {
 
         // ------------- rendering commands -------------
 
-        glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function)
+        /* glClearColor((38.0f/255.0f), (27.0f/255.0f), (14.0f/255.0f), 1.0f); // sets the color buffer bit (state-setting function) */
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clears the screen with the color buffer bit and whatever we set it to (state-using function)
 
-        shader_set_float(&shader, "percent", percent);
+        shader_set_float(&lighting_shader, "percent", percent);
 
         // Update camera view
         mat4s projection = glms_perspective(glm_rad(camera.fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
         mat4s view = camera_get_view_mat4s(&camera);
 
-        shader_set_mat4(&shader, "projection", projection);
-        shader_set_mat4(&shader, "view", view);
+        shader_set_mat4(&lighting_shader, "projection", projection);
+        shader_set_mat4(&lighting_shader, "view", view);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        // standard cube
         glBindVertexArray(VAO);
-        for (int i = 0; i < 10; i++) {
-            mat4s model = glms_mat4_identity();
-            model = glms_translate(model, cube_positions[i]);
-            float angle = 20.0f * i;
-            model = glms_rotate(model, glm_rad(angle), (vec3s){{1.0f, 0.3f, 0.5f}});
+        mat4s model = glms_mat4_identity();
+        model = glms_translate(model, cube_position);
+        shader_set_mat4(&lighting_shader, "model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            if (i % 3 == 0) {
-                model = glms_rotate(model, (float)glfwGetTime() * glm_rad(10.0f), (vec3s){{0.5f, 1.0f, 0.0f}});
-            }
+        // light source cube
+        glBindVertexArray(light_VAO);
+        shader_use(&light_source_shader);
+        shader_set_mat4(&light_source_shader, "projection", projection);
+        shader_set_mat4(&light_source_shader, "view", view);
+        model = glms_mat4_identity();
+        model = glms_translate(model, light_position);
+        model = glms_scale_uni(model, 0.2f);
+        shader_set_mat4(&light_source_shader, "model", model);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-            shader_set_mat4(&shader, "model", model);
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        shader_use(&lighting_shader);
 
         // ------------- end rendering -------------
 
